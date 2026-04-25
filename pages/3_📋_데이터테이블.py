@@ -102,9 +102,20 @@ with col_del:
 
 # ── 세부 항목 보기 ─────────────────────────────────────────────────────────────
 st.markdown("---")
-st.markdown("### 월별 세부 항목")
+
+col_title, col_edit = st.columns([4, 1])
+with col_title:
+    st.markdown("### 월별 세부 항목")
 
 detail_month = st.selectbox("조회할 월", options=months[::-1], key="detail_sel")
+
+with col_edit:
+    st.markdown("<div style='margin-top:1.8rem'></div>", unsafe_allow_html=True)
+    if st.button("✏️ 수정하기", use_container_width=True, type="secondary"):
+        year, month = detail_month.split("-")
+        st.session_state["goto_year"] = int(year)
+        st.session_state["goto_month"] = f"{int(month):02d}"
+        st.switch_page("pages/2_✏️_데이터입력.py")
 detail_data = all_data[detail_month]
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["매출", "광고비", "고정비", "변동비", "매입"])
