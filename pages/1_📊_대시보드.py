@@ -141,6 +141,6 @@ styled = show_df.style.format(
         col: "{:.1f}%" for col in ["광고비율(%)"]
         if col in show_df.columns
     }
-).applymap(style_profit, subset=["영업이익"] if "영업이익" in show_df.columns else [])
+).map(style_profit, subset=["영업이익"] if "영업이익" in show_df.columns else [])
 
 st.dataframe(styled, use_container_width=True)
