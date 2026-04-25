@@ -129,9 +129,8 @@ def cost_breakdown_pie(month_data: dict, year_month: str) -> go.Figure:
         textfont_size=13,
     ))
     fig.update_layout(
-        **LAYOUT_DEFAULTS,
+        **{**LAYOUT_DEFAULTS, "legend": dict(orientation="v")},
         title=f"{year_month} 비용 구성",
-        legend=dict(orientation="v"),
     )
     return fig
 
