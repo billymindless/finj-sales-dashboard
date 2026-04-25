@@ -36,28 +36,48 @@ for ym in months:
         "총변동비": d["총변동비"],
         "매입금액": d["매입금액"],
         "총지출": d["총지출"],
-        "영업이익": d["영업이익"],
+        "영업이익_raw": d["영업이익"],
         "자사몰ROAS": round(d["자사몰ROAS"], 2) if d["자사몰ROAS"] else None,
         "오늘의집ROAS": round(d["오늘의집ROAS"], 2) if d["오늘의집ROAS"] else None,
         "광고비율(%)": round(d["광고비율"], 1) if d["광고비율"] else None,
         "마진율(%)": round(d["마진율"], 1) if d["마진율"] else None,
     })
 
-df = pd.DataFrame(rows).set_index("연월")
+raw_df = pd.DataFrame(rows).set_index("연월")
 
 money_cols = ["합산매출", "오늘의집매출", "자사몰매출", "총광고비", "오늘의집광고", "자사몰광고",
-              "총고정비", "총변동비", "매입금액", "총지출", "영업이익"]
+              "총고정비", "총변동비", "매입금액", "총지출"]
 
-styled = df.style.format(
-    {col: "₩{:,.0f}" for col in money_cols if col in df.columns}
-).format(
-    {col: "{:.2f}" for col in ["자사몰ROAS", "오늘의집ROAS"] if col in df.columns}
-).format(
-    {col: "{:.1f}%" for col in ["광고비율(%)", "마진율(%)"] if col in df.columns}
-).map(
-    lambda v: "color:#16A34A;font-weight:600" if isinstance(v, (int, float)) and v >= 0
-    else ("color:#DC2626;font-weight:600" if isinstance(v, (int, float)) and v < 0 else ""),
-    subset=["영업이익"] if "영업이익" in df.columns else [],
+# 화면 표시용 DataFrame (문자열로 사전 포맷)
+display_df = pd.DataFrame(index=raw_df.index)
+for col in money_cols:
+    if col in raw_df.columns:
+        display_df[col] = raw_df[col].apply(lambda x: f"₩{int(x):,}" if pd.notna(x) else "-")
+
+# 영업이익은 색상 적용을 위해 별도 처리
+if "영업이익_raw" in raw_df.columns:
+    display_df["영업이익"] = raw_df["영업이익_raw"].apply(lambda x: f"₩{int(x):,}" if pd.notna(x) else "-")
+
+for col in ["자사몰ROAS", "오늘의집ROAS"]:
+    if col in raw_df.columns:
+        display_df[col] = raw_df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+
+for col in ["광고비율(%)", "마진율(%)"]:
+    if col in raw_df.columns:
+        display_df[col] = raw_df[col].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "-")
+
+
+def style_profit(v):
+    try:
+        num = int(str(v).replace("₩", "").replace(",", "").strip())
+        return "color:#16A34A;font-weight:600" if num >= 0 else "color:#DC2626;font-weight:600"
+    except Exception:
+        return ""
+
+
+styled = display_df.style.map(
+    style_profit,
+    subset=["영업이익"] if "영업이익" in display_df.columns else [],
 )
 
 st.dataframe(styled, use_container_width=True, height=400)
@@ -69,9 +89,8 @@ col_dl, col_del = st.columns([3, 1])
 with col_dl:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="요약")
+        raw_df.drop(columns=["영업이익_raw"], errors="ignore").to_excel(writer, sheet_name="요약")
 
-        # 원본 데이터 시트
         raw_rows = []
         for ym in months:
             md = all_data[ym]
@@ -116,6 +135,7 @@ with col_edit:
         st.session_state["goto_year"] = int(year)
         st.session_state["goto_month"] = f"{int(month):02d}"
         st.switch_page("pages/2_✏️_데이터입력.py")
+
 detail_data = all_data[detail_month]
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["매출", "광고비", "고정비", "변동비", "매입"])
@@ -148,14 +168,13 @@ def render_category_table(tab, category):
         items = detail_data.get(category, {})
         lmap = label_maps.get(category, {})
         rows = [
-            {"항목": lmap.get(k, k), "금액 (₩)": v}
+            {"항목": lmap.get(k, k), "금액": f"₩{int(v):,}"}
             for k, v in items.items()
         ]
         tdf = pd.DataFrame(rows)
-        tdf["금액 (₩)"] = tdf["금액 (₩)"].apply(lambda x: f"₩{x:,.0f}")
         st.dataframe(tdf, use_container_width=True, hide_index=True)
         total = sum(items.values())
-        st.markdown(f"**합계: ₩{total:,.0f}**")
+        st.markdown(f"**합계: ₩{int(total):,}**")
 
 
 render_category_table(tab1, "매출")

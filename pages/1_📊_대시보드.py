@@ -116,31 +116,36 @@ display_cols = {
     "오늘의집ROAS": "오늘ROAS",
     "광고비율": "광고비율(%)",
 }
-show_df = df[[c for c in display_cols if c in df.columns]].rename(columns=display_cols)
 
-def style_profit(val):
-    if pd.isna(val):
-        return ""
+raw_show = df[[c for c in display_cols if c in df.columns]].rename(columns=display_cols)
+
+money_display_cols = ["합산매출", "오늘의집", "자사몰", "광고비", "고정비", "변동비", "매입", "영업이익"]
+
+# 문자열로 사전 포맷해서 Arrow 렌더러 호환성 보장
+show_df = raw_show.copy()
+for col in money_display_cols:
+    if col in show_df.columns:
+        show_df[col] = show_df[col].apply(lambda x: f"₩{int(x):,}" if pd.notna(x) else "-")
+
+for col in ["자사몰ROAS", "오늘ROAS"]:
+    if col in show_df.columns:
+        show_df[col] = show_df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+
+if "광고비율(%)" in show_df.columns:
+    show_df["광고비율(%)"] = show_df["광고비율(%)"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "-")
+
+
+def style_profit(v):
     try:
-        return "color: #16A34A; font-weight:600" if float(val) >= 0 else "color: #DC2626; font-weight:600"
+        num = int(str(v).replace("₩", "").replace(",", "").strip())
+        return "color:#16A34A;font-weight:600" if num >= 0 else "color:#DC2626;font-weight:600"
     except Exception:
         return ""
 
-styled = show_df.style.format(
-    {
-        col: "{:,.0f}" for col in ["합산매출", "오늘의집", "자사몰", "광고비", "고정비", "변동비", "매입", "영업이익"]
-        if col in show_df.columns
-    }
-).format(
-    {
-        col: "{:.2f}" for col in ["자사몰ROAS", "오늘ROAS"]
-        if col in show_df.columns
-    }
-).format(
-    {
-        col: "{:.1f}%" for col in ["광고비율(%)"]
-        if col in show_df.columns
-    }
-).map(style_profit, subset=["영업이익"] if "영업이익" in show_df.columns else [])
+
+styled = show_df.style.map(
+    style_profit,
+    subset=["영업이익"] if "영업이익" in show_df.columns else [],
+)
 
 st.dataframe(styled, use_container_width=True)
