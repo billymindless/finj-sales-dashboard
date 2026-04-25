@@ -1,0 +1,18 @@
+# 시크릿 (절대 커밋하면 안 됨)
+.streamlit/secrets.toml
+
+# 로컬 데이터 (선택사항 - Supabase 쓰면 커밋 불필요)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
