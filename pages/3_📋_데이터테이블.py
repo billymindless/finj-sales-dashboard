@@ -54,7 +54,7 @@ styled = df.style.format(
     {col: "{:.2f}" for col in ["자사몰ROAS", "오늘의집ROAS"] if col in df.columns}
 ).format(
     {col: "{:.1f}%" for col in ["광고비율(%)", "마진율(%)"] if col in df.columns}
-).applymap(
+).map(
     lambda v: "color:#16A34A;font-weight:600" if isinstance(v, (int, float)) and v >= 0
     else ("color:#DC2626;font-weight:600" if isinstance(v, (int, float)) and v < 0 else ""),
     subset=["영업이익"] if "영업이익" in df.columns else [],
