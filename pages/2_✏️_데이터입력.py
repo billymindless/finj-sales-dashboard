@@ -50,12 +50,13 @@ st.markdown("---")
 
 
 def num_input(label, value, key, step=10000, prefix="₩"):
+    # key에 year_month를 포함해 월이 바뀌면 위젯이 새로 초기화되도록 함
     result = st.number_input(
         f"{label} ({prefix})" if prefix else label,
         value=int(value),
         step=step,
         format="%d",
-        key=key,
+        key=f"{year_month}__{key}",
     )
     st.caption(f"₩ {result:,}")
     return result
