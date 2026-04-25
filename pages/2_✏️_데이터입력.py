@@ -51,20 +51,29 @@ st.markdown("---")
 
 def num_input(label, value, key, step=10000, prefix="₩"):
     int_value = int(value)
+    full_key = f"{year_month}__{key}"
+
+    # 사용자가 입력 후 포커스를 벗어나면 세션 스테이트 값을 콤마 형식으로 재포맷
+    if full_key in st.session_state:
+        raw_ss = str(st.session_state[full_key]).replace(",", "").replace(" ", "").strip()
+        try:
+            st.session_state[full_key] = f"{int(raw_ss):,}"
+        except ValueError:
+            pass
+
     raw = st.text_input(
         f"{label} ({prefix})" if prefix else label,
         value=f"{int_value:,}",
-        key=f"{year_month}__{key}",
+        key=full_key,
     )
     clean = raw.replace(",", "").replace(" ", "").strip()
     if clean == "":
         return 0
     try:
-        result = int(clean)
+        return int(clean)
     except ValueError:
         st.caption("⚠️ 숫자만 입력해주세요")
         return int_value
-    return result
 
 
 # ── 매출 ─────────────────────────────────────────────────────────────────────
