@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/sync-on-start.sh"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": ".cursor/hooks/sync-on-end.sh"
+      }
+    ]
+  }
+}
