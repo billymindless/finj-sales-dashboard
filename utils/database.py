@@ -392,9 +392,9 @@ def apply_transactions_to_month(
 
 def merchant_key(merchant: str, biz_no: Optional[str]) -> str:
     """캐시 키 생성: 사업자번호 우선, 없으면 가맹점명."""
-    if biz_no:
+    if isinstance(biz_no, str) and biz_no.strip():
         digits = "".join(ch for ch in biz_no if ch.isdigit())
         if digits:
             return f"bizno:{digits}"
-    name = (merchant or "").strip().lower()
+    name = (merchant or "").strip().lower() if isinstance(merchant, str) else ""
     return f"name:{name}"

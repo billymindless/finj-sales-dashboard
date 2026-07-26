@@ -125,7 +125,9 @@ run_classify = st.button("🤖 AI 자동 분류 실행", type="primary", use_con
 if run_classify or "classified_df" in st.session_state and st.session_state.get("classified_source_key") == uploaded.name + sheet:
     if run_classify:
         with st.spinner("Gemini로 거래를 분류하는 중..."):
-            txns = normalized.to_dict(orient="records")
+            # 매핑 안 된 컬럼(예: biz_no)이 전부 None이면 pandas가 float NaN 컬럼으로
+            # 만들어버려 분류/캐시 로직에서 문자열 처리 시 오류가 나므로 None으로 정리.
+            txns = normalized.where(pd.notna(normalized), None).to_dict(orient="records")
             classified = classify_transactions(txns)
         cdf = pd.DataFrame(classified)
         cdf["txn_date"] = pd.to_datetime(cdf["txn_date"]).dt.date
