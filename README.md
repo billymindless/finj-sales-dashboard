@@ -38,7 +38,10 @@ finj_sales/
 │   └── vat.py                # 부가세 신고 자료 생성
 ├── data/                     # 로컬 데이터 저장소 (gitignore)
 ├── docs/
-│   └── 카드지출_자동분류_부가세_설계.md
+│   ├── 카드지출_자동분류_부가세_설계.md
+│   └── ga4-daily-reports/    # GA4 일일 보고서 (날짜별)
+│       ├── 2026-09-24.md
+│       └── images/
 ├── .streamlit/
 │   ├── config.toml           # 테마 설정
 │   └── secrets.toml          # 비밀번호·API키 (gitignore)
